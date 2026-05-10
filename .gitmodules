@@ -7,3 +7,6 @@
 [submodule "firmware/Arduino-Firmware"]
 	path = firmware/Arduino-Firmware
 	url = https://github.com/ackothalawala/Arduino-Firmware-for-Stewart-Platform.git
+[submodule "desktop-apps/WPF-Controller"]
+	path = desktop-apps/WPF-Controller
+	url = https://github.com/ackothalawala/stewart_platform-Control-Using-WPF.git
