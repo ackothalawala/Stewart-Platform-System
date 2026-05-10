@@ -1,0 +1,9 @@
+[submodule "esktop-apps/WPF-Controller"]
+	path = esktop-apps/WPF-Controller
+	url = https://github.com/ackothalawala/stewart_platform-Control-Using-WPF.git
+[submodule "desktop-apps/Avalonia-Controller"]
+	path = desktop-apps/Avalonia-Controller
+	url = https://github.com/ackothalawala/stewart_platform_avalonia.git
+[submodule "firmware/Arduino-Firmware"]
+	path = firmware/Arduino-Firmware
+	url = https://github.com/ackothalawala/Arduino-Firmware-for-Stewart-Platform.git
