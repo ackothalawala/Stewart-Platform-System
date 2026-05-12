@@ -588,68 +588,27 @@ HelixToolkit is tightly coupled to WPF's visual tree and Windows Presentation Fo
 
 The intended deployment context includes Raspberry Pi as the embedded control interface alongside the physical platform. A Windows-only application would require a separate PC, increasing system complexity. The Avalonia rewrite allows the control interface to run on the same embedded Linux system as the platform.
 
-### Axis-to-servo influence matrix
+### Axis-to-Servo Influence Matrix
 
-Rather than re-running the full IK at every 30 Hz control cycle, the closed-loop correction is distributed across servos using a fixed linear influence matrix in `applyCorrection()`:
+Rather than solving the full inverse kinematics system during every 30 Hz closed-loop cycle, orientation corrections are distributed across the six servos using a fixed linearised influence matrix implemented in `applyCorrection()`.
 
-```
-Servo 0:  +roll        + yaw×0.3
-Servo 1:  -roll        + yaw×0.3
-Servo 2:         +pitch + yaw×0.3
-Servo 3:         -pitch + yaw×0.3
-Servo 4:  +roll×0.7 + pitch×0.7 + yaw×0.3
-Servo 5:  -roll×0.7 - pitch×0.7 + yaw×0.3
+The matrix approximates the Stewart Platform Jacobian near the home pose and is valid within the platform's small-angle operating range.
+
+```text
+Servo 0 = +Roll                     + Yaw × 0.3
+Servo 1 = -Roll                     + Yaw × 0.3
+
+Servo 2 =             + Pitch       + Yaw × 0.3
+Servo 3 =             - Pitch       + Yaw × 0.3
+
+Servo 4 = +Roll × 0.7 + Pitch × 0.7 + Yaw × 0.3
+Servo 5 = -Roll × 0.7 - Pitch × 0.7 + Yaw × 0.3
 ```
 
 This is a first-order linear approximation of the actual IK Jacobian near the home position. It is accurate within the small-angle operating range used in practice and avoids the computational cost of full IK inversion on each control cycle.
 
 ---
 
-## PID Tuning Guide
-
-The current firmware uses a proportional-only controller with a fixed gain `Kp = 0.5`. Corrections are clamped to ±2° per axis per cycle (±1° for yaw). This conservative setup prioritises stability over response speed.
-
-If you need faster response or have modified the physical geometry, follow this process:
-
-**Step 1 — Establish a stable baseline with Kp only**
-
-Start at `Kp = 0.3`. Apply a 5° step input in roll only and observe the platform response. Increase Kp in steps of 0.1 until the platform reaches the setpoint without sustained oscillation. Back off by 20% from the point where oscillation first appears.
-
-**Step 2 — Add derivative action if overshoot is present**
-
-If the platform overshoots and rings before settling, add a derivative term. In `performClosedLoop()`, compute:
-
-```cpp
-float d_roll = (err_roll - prev_error_roll) / dt;
-float corr_roll = kp * err_roll + kd * d_roll;
-prev_error_roll = err_roll;
-```
-
-Start with `Kd = 0.05` and increase in steps of 0.01 until the overshoot is damped.
-
-**Step 3 — Add integral action only for steady-state error**
-
-If the platform consistently settles slightly off-target (visible as a non-zero steady error after the `▶ MOVING` → `✓ LOCKED` transition), add:
-
-```cpp
-integral_roll += err_roll * dt;
-integral_roll = constrain(integral_roll, -10.0, 10.0);
-float corr_roll = kp * err_roll + ki * integral_roll + kd * d_roll;
-```
-
-Start with `Ki = 0.01`. Avoid large Ki values — integrator windup on a yaw axis with gyro drift will cause slow oscillation that takes many seconds to appear.
-
-**Suggested starting point for a platform matching these physical dimensions:**
-
-| Axis | Kp | Ki | Kd | Correction limit |
-|---|---|---|---|---|
-| Roll | 0.5 | 0.0 | 0.0 | ±2° per cycle |
-| Pitch | 0.5 | 0.0 | 0.0 | ±2° per cycle |
-| Yaw | 0.3 | 0.0 | 0.0 | ±1° per cycle |
-
-Yaw uses a lower gain because the gyro-integrated yaw measurement accumulates drift over time. Aggressive yaw control will fight its own drift and cause slow wandering.
-
----
 
 ## Known Limitations
 
@@ -665,38 +624,6 @@ Roll and Pitch are computed from the accelerometer and are stable over time. Yaw
 **No absolute position sensing**
 The platform has no way to verify its physical position. If a servo skips steps or stalls, the IK solution diverges silently from the actual state. The only observable indicator is the MPU6050 orientation, which reflects the real platform orientation — but not which servo caused the discrepancy.
 
-**Manual servo calibration required**
-Each servo requires individual `SERVO_MIDDLE_PULSE_WIDTH` calibration. There is no automated calibration routine — the values must be determined empirically by adjusting each servo until its horn is horizontal at the home command, then encoding that pulse width in the firmware constant.
-
-**Gyro calibration is blocking in current firmware**
-`calibrateGyro()` in `setup()` uses `delay(5)` × 100 iterations = 500 ms of blocking time before the WebSocket server is ready to accept connections. Connection attempts during this window will fail silently. Connecting immediately after the serial monitor shows `AP IP:` will often fail — wait for `Ready!` before connecting.
-
----
-
-## Future Research Directions
-
-**Closed-loop XYZ translation control**
-Integrating a Time-of-Flight distance sensor array or stereo depth camera to measure platform position would allow full 6-DOF closed-loop control — the natural extension of the current orientation-only loop.
-
-**Complementary filter or Mahony filter for yaw**
-Replacing the pure gyro integration for yaw with a complementary or Mahony filter incorporating a magnetometer would eliminate long-term yaw drift and make the closed-loop yaw controller practically useful for extended sessions.
-
-**Motion trajectory planning**
-Rather than step inputs from sliders, implementing smooth trajectory interpolation (cubic spline or minimum-jerk) between waypoints would enable preprogrammed motion sequences — directly relevant to the cricket training application where specific delivery angles need to be reproduced.
-
-**Non-blocking gyro calibration**
-The current blocking `calibrateGyro()` should be replaced with sample accumulation spread across `loop()` iterations, as discussed in the known limitations section. This ensures the WebSocket server is available immediately after boot.
-
-**Web-based control interface**
-Serving a lightweight HTML/JavaScript control interface directly from the ESP32 would eliminate the need for a separate desktop application for basic operation, useful for embedded deployment on Raspberry Pi without a display.
-
-**Data logging and playback**
-Recording MPU6050 readings, servo commands, and setpoints over time would support post-session analysis — particularly relevant for the cricket training context where player posture and platform response need to be correlated.
-
-**Cricket training analytics integration**
-The longer-term research goal is correlating platform motion data with ball trajectory sensors and player biomechanics data to provide quantitative feedback on batting and bowling technique.
-
----
 
 ## Troubleshooting
 
@@ -734,7 +661,6 @@ The longer-term research goal is correlating platform motion data with ball traj
 
 The Stewart Platform architecture is used across a range of engineering and research domains. This implementation was designed with the following in mind:
 
-- **Cricket training simulation** — reproducing delivery surface angles and simulating pitch behaviour for batting practice
 - **Motion platform research** — studying parallel manipulator kinematics and closed-loop control strategies
 - **IoT embedded control** — demonstrating distributed computation between an embedded microcontroller and an edge computing device
 - **Robotics education** — demonstrating inverse kinematics, sensor fusion, real-time control, and cross-platform software development in a single integrated system
