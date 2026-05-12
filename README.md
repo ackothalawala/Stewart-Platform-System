@@ -18,8 +18,6 @@ This project was developed as part of undergraduate research in the Information 
 
 This system is part of the undergraduate research project:
 
-> **"An IoT-Enabled, Software-Defined Cricket Training Platform Using Stewart Platform for Player Monitoring and Skill Development"**
-> 
 > BSc (Hons) Information Systems — Sabaragamuwa University of Sri Lanka
 
 ---
