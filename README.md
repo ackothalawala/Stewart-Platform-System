@@ -28,7 +28,7 @@ This system is part of the undergraduate research project:
 
 ### Physical Stewart Platform
 
-![Hardware Prototype](Images/platform_hardware.jpg)
+![Hardware Prototype](Assets/platform_hardware.jpg)
 
 ### Desktop Application — Open Loop Mode
 
@@ -55,23 +55,34 @@ This system is part of the undergraduate research project:
 ## Repository Structure
 
 ```
-stewart-platform/
+Stewart-Platform-System/
+│
+├── Assets/                               # Images, screenshots, diagrams, GIFs
+│   ├── hero.jpg
+│   ├── platform_hardware.jpg
+│   ├── desktop_openloop.png
+│   ├── desktop_closedloop.png
+│   ├── 3d_visualiser.png
+│   ├── fusion_assembly.png
+│   ├── system_architecture.png
+│   └── demo.gif
 │
 ├── StewartPlatform_WPF/                  # Version 1 — Windows desktop app
 │   ├── MainWindow.xaml                   # WPF layout with HelixToolkit viewport
 │   ├── MainWindow.xaml.cs                # WPF UI logic
-│   ├── StewartMath.cs                    # IK solver (WPF version)
+│   ├── StewartMath.cs                    # Inverse kinematics solver
 │   └── RobotConfig.cs                    # Physical configuration
 │
 ├── StewartPlatform_Avalonia/             # Version 2 — Cross-platform desktop app
 │   ├── MainWindow.axaml                  # Avalonia UI layout
-│   ├── MainWindow.axaml.cs              # UI logic, connection, timers
-│   ├── PlatformView3D.cs                # Custom OpenGL viewport (Silk.NET)
-│   ├── StewartMath.cs                   # IK solver (System.Numerics)
-│   └── RobotConfig.cs                   # Physical dimensions and geometry
+│   ├── MainWindow.axaml.cs               # UI logic, connection, timers
+│   ├── PlatformView3D.cs                 # OpenGL renderer (Silk.NET)
+│   ├── StewartMath.cs                    # IK solver (System.Numerics)
+│   └── RobotConfig.cs                    # Physical dimensions and geometry
 │
 ├── Firmware/
-│   └── stewart_avalonia_04.ino          # ESP32 firmware (current)
+│   └── stewart_avalonia_04.ino           # ESP32 firmware
+│
 │
 └── README.md
 ```
@@ -274,99 +285,9 @@ Not implemented. Forward kinematics for a Stewart Platform requires solving a no
 
 ## System Architecture
 
-```
-┌───────────────────────────────────────────────────────────────┐
-│                           PC Layer                            │
-│                     (Desktop Application)                     │
-│                                                               │
-│                      ┌─────────────┐                          │
-│                      │ Application │                          │
-│                      └──────┬──────┘                          │
-│                             ▼                                 │
-│             ┌───────────────────────────────┐                 │
-│             │ Open loop mode│Closed loop mode│                │
-│             └───────┬───────────────┬───────┘                 │
-│                     ▼               ▼                         │
-│              ┌────────────┐   ┌────────────┐                  │
-│              │ Send MODE: │   │ Send MODE: │                  │
-│              │    OPEN    │   │   CLOSED   │                  │
-│              └──────┬─────┘   └─────┬──────┘                  │
-│                     ▼               ▼                         │
-│              ┌────────────┐   ┌────────────┐                  │
-│              │ User moves │   │ User moves │                  │
-│              │ slider /   │   │ slider /   │                  │
-│              │ enters val │   │ enters val │                  │
-│              │ X/Y/Z,     │   │ X/Y/Z,     │                  │
-│              │ R/P/Y      │   │ R/P/Y      │                  │
-│              └──────┬─────┘   └─────┬──────┘                  │
-│                     ▼               ▼                         │
-│              ┌────────────┐   ┌────────────┐                  │
-│              │  Inverse   │   │  Inverse   │                  │
-│              │ kinematics │   │ kinematics │                  │
-│              │   solver   │   │   solver   │                  │
-│              │(Open Loop) │   │(Closed Loop)│                  │
-│              └──────┬─────┘   └─────┬──────┘                  │
-│                     │               │                         │
-└─────────────────────┴───────────────┴─────────────────────────┘
-                      │               │
-┌─────────────────────▼───────────────▼─────────────────────────┐
-│ Communication Protocol: PC to microcontroller USB Serial/Wi-Fi│
-└─────────────────────────────┬─────────────────────────────────┘
-                              │
-┌─────────────────────────────▼─────────────────────────────────┐
-│                     Microcontroller Layer                     │
-│                   (Microcontroller Firmware)                  │
-│                                                               │
-│                     ┌───────────────┐                         │
-│                     │ Packet parser │                         │
-│                     └───────┬───────┘                         │
-│                             ▼                                 │
-│                        /─────────\                            │
-│              Open Loop │  Mode   │ Closed Loop                │
-│            ┌───────────\─────────/───────────┐                │
-│            ▼                                 ▼                │
-│ ┌────────────────────┐             ┌──────────────────┐       │
-│ │Receive servo angles│             │ Receive setpoint │       │
-│ └──────────┬─────────┘             └─────────┬────────┘       │
-│            │                                 ▼                │
-│            │                       ┌──────────────────┐       │
-│            │                       │   P controller   │       │
-│            │                       └─────────┬────────┘       │
-│            │                                 ▼                │
-│            │                       ┌──────────────────┐       │
-│            │                       │ Servo influence  │       │
-│            │                       │      matrix      │       │
-│            │                       └─────────┬────────┘       │
-│            │                                 │                │
-│            └───────────▶┌───────────┐◀───────┘                │
-│                         │ Send Data │                         │
-│                         └─────┬─────┘                         │
-└───────────────────────────────┴───────────────────────────────┘
-                                │
-┌───────────────────────────────▼───────────────────────────────┐
-│                  Communication Protocol: I2C                  │◀┐
-└──────────────┬────────────────────────────────────────────────┘ │
-               │                                                  │
-┌──────────────▼────────────────────────────────────────────────┐ │
-│                        Hardware Layer                         │ │ Real
-│                                                               │ │ Time
-│ ┌──────────────────────────┐     ┌──────────────────────────┐ │ │ Feedback
-│ │      Actuation Path      │     │      Feedback Path       │ │ │
-│ │                          │     │                          │ │ │
-│ │ ┌─────────┐   ┌────────┐ │     │  ┌────────────────────┐  │ │ │
-│ │ │  Servo  │──▶│Stewart │ │     │  │                    │  │ │ │
-│ │ │ Driver  │   │Platform│ │     │  │     MPU Sensor     │──┼─┘ │
-│ │ │         │   │Actuator│ │     │  │                    │  │   │
-│ │ └─────────┘   └───┬────┘ │     │  └─────────▲──────────┘  │   │
-│ │                   │      │     │            │             │   │
-│ │              ┌────▼────┐ │     │            │             │   │
-│ │              │Platform │ │     │            │             │   │
-│ │              │(Physical├─┼─────┼────────────┘             │   │
-│ │              │ Motion) │ │     │                          │   │
-│ │              └─────────┘ │     │                          │   │
-│ └──────────────────────────┘     └──────────────────────────┘ │
-└───────────────────────────────────────────────────────────────┘
-```
+<p align="center">
+  <img src="Assets/System Architecture.png" width="800" alt="Stewart Platform System Architecture">
+</p>
 
 **Data flow — open-loop:**
 Slider → IK solver (PC) → servo angles → WebSocket/Serial → `parseCommand` (ESP32) → PCA9685
