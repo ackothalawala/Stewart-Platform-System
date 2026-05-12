@@ -50,6 +50,11 @@ This system is part of the undergraduate research project:
   <img src="Assets/base 3d model 3.png" width="260" alt="Fusion Base 3D Model 3">
 </p>
 
+<p align="center" style="display: flex; justify-content: center; gap: 10px;">
+  <img src="Assets/platform 3d model 1" width="260" alt="Fusion platform 3d model 1">
+  <img src="Assets/platform 3d model 2.png" width="260" alt="Fusion platform 3d model 2">
+</p>
+
 ### Demo Video
 
 [Watch Demo Video](https://youtube.com/your-link)
