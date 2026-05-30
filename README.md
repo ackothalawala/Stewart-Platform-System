@@ -28,7 +28,11 @@ This system is part of the undergraduate research project:
 
 ### Physical Stewart Platform
 
-![Hardware Prototype](Assets/platform_hardware.jpg)
+<p align="center" style="display: flex; justify-content: center; gap: 10px;">
+  <img src="Assets/Prototype 1.jpeg" width="260" alt="Prototype View 1">
+  <img src="Assets/Prototype 2.jpeg" width="260" alt="Prototype View 2">
+  <img src="Assets/Prototype_MPU.jpeg" width="260" alt="Prototype View with MPU">
+</p>
 
 ### Desktop Application — Open Loop Mode
 
@@ -57,7 +61,7 @@ This system is part of the undergraduate research project:
 
 ### Demo Video
 
-[Watch Demo Video](https://youtube.com/your-link)
+[Watch Demo Video]
 
 ---
 
