@@ -512,11 +512,11 @@ Network round-trip time over WebSocket is variable and typically 10–50 ms depe
 
 ### Why the IK solver runs on the PC
 
-The full Stewart Platform IK involves evaluating one trigonometric equation per servo per cycle — six `arcsin`, six `arctan2`, and supporting arithmetic. This is straightforward in C# with `System.Numerics` on the PC but would require careful fixed-point or floating-point management on the ESP32 alongside the sensor reads, WebSocket handling, and PWM output. More importantly, the IK result is needed for the 3D visualiser regardless, so it makes sense to keep it on the machine running the visualiser. The closed-loop correction on the ESP32 uses a simpler linear influence matrix rather than re-solving the full IK at 30 Hz.
+The full Stewart Platform IK involves evaluating one trigonometric equation per servo per cycle - six `arcsin`, six `arctan2`, and supporting arithmetic. This is straightforward in C# with `System.Numerics` on the PC but would require careful fixed-point or floating-point management on the ESP32 alongside the sensor reads, WebSocket handling, and PWM output. More importantly, the IK result is needed for the 3D visualiser, regardless, so it makes sense to keep it on the machine running the visualiser. The closed-loop correction on the ESP32 uses a simpler linear influence matrix rather than re-solving the full IK at 30 Hz.
 
 ### Why raw OpenGL replaced HelixToolkit
 
-HelixToolkit is tightly coupled to WPF's visual tree and Windows Presentation Foundation renderer. It has no Avalonia port. When the decision was made to support Linux and Raspberry Pi — both relevant for IoT deployment in the research context — HelixToolkit was no longer an option. Silk.NET provides thin managed bindings to the native OpenGL API and works with Avalonia's `OpenGlControlBase` on all target platforms. The custom renderer uses a VAO/VBO pipeline with manually bound attribute locations to maintain compatibility with older OpenGL and OpenGL ES (ANGLE) implementations.
+HelixToolkit is tightly coupled to WPF's visual tree and Windows Presentation Foundation renderer. It has no Avalonia port. When the decision was made to support Linux and Raspberry Pi - both relevant for IoT deployment in the research context - HelixToolkit was no longer an option. Silk.NET provides thin managed bindings to the native OpenGL API and works with Avalonia's `OpenGLControlBase` on all target platforms. The custom renderer uses a VAO/VBO pipeline with manually bound attribute locations to maintain compatibility with older OpenGL and OpenGL ES (ANGLE) implementations.
 
 ### Why cross-platform support was prioritised
 
@@ -547,16 +547,16 @@ This is a first-order linear approximation of the actual IK Jacobian near the ho
 ## Known Limitations
 
 **No forward kinematics implementation**
-The system cannot compute the actual platform pose from servo angles alone. All pose information comes from the MPU6050 — which provides orientation only, not position.
+The system cannot compute the actual platform pose from servo angles alone. All pose information comes from the MPU6050, which provides orientation only, not position.
 
 **No closed-loop XYZ translation control**
-The closed-loop controller operates on orientation (Roll, Pitch, Yaw) only. Translation control in X, Y, and Z requires a position sensing modality — such as a depth camera, optical flow sensor, or linear encoders — none of which are currently integrated.
+The closed-loop controller operates on orientation (Roll, Pitch, Yaw) only. Translation control in X, Y, and Z requires a position sensing modality - such as a depth camera, optical flow sensor, or linear encoders - none of which are currently integrated.
 
 **MPU6050 yaw drift**
 Roll and Pitch are computed from the accelerometer and are stable over time. Yaw is computed by integrating the gyroscope Z-axis output, which accumulates drift of approximately 0.5–2°/minute depending on temperature and vibration. For long sessions, the measured yaw will diverge from the physical yaw. There is no magnetometer correction in the current implementation.
 
 **No absolute position sensing**
-The platform has no way to verify its physical position. If a servo skips steps or stalls, the IK solution diverges silently from the actual state. The only observable indicator is the MPU6050 orientation, which reflects the real platform orientation — but not which servo caused the discrepancy.
+The platform has no way to verify its physical position. If a servo skips steps or stalls, the IK solution diverges silently from the actual state. The only observable indicator is the MPU6050 orientation, which reflects the real platform orientation - but not which servo caused the discrepancy.
 
 
 ## Troubleshooting
