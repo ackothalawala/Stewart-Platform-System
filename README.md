@@ -110,7 +110,11 @@ The first desktop application was built using C# WPF with HelixToolkit for 3D re
 
 This version was Windows-exclusive and had no closed-loop control. The MPU6050 data was displayed as monitoring information only — it had no influence on servo commands.
 
-Go to this repository: ![WPF]([https://img.shields.io/badge/Status-Active%20Development-brightgreen](https://github.com/ackothalawala/stewart_platform-Control-Using-WPF))
+### Project Status
+![Status](https://img.shields.io/badge/Status-Active%20Development-brightgreen)
+
+### Repository
+[View Stewart Platform WPF Control Project](https://github.com/ackothalawala/stewart_platform-Control-Using-WPF)
 
 ### Version 2 — Avalonia UI (current)
 
