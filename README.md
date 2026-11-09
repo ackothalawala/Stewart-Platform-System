@@ -110,6 +110,8 @@ The first desktop application was built using C# WPF with HelixToolkit for 3D re
 
 This version was Windows-exclusive and had no closed-loop control. The MPU6050 data was displayed as monitoring information only — it had no influence on servo commands.
 
+Go to this repository: ![WPF]([https://img.shields.io/badge/Status-Active%20Development-brightgreen](https://github.com/ackothalawala/stewart_platform-Control-Using-WPF))
+
 ### Version 2 — Avalonia UI (current)
 
 The application was rewritten from scratch in Avalonia UI to target Windows, Linux, and Raspberry Pi from a single codebase. HelixToolkit was replaced by a custom OpenGL renderer built directly on Silk.NET using Avalonia's `OpenGlControlBase`. The firmware was extended to support a closed-loop proportional control mode where the ESP32 closes the orientation loop locally using live MPU6050 feedback, removing network latency from the control path entirely.
