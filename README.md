@@ -120,6 +120,9 @@ This version was Windows-exclusive and had no closed-loop control. The MPU6050 d
 
 The application was rewritten from scratch in Avalonia UI to target Windows, Linux, and Raspberry Pi from a single codebase. HelixToolkit was replaced by a custom OpenGL renderer built directly on Silk.NET using Avalonia's `OpenGlControlBase`. The firmware was extended to support a closed-loop proportional control mode where the ESP32 closes the orientation loop locally using live MPU6050 feedback, removing network latency from the control path entirely.
 
+### Repository
+[View Stewart Platform Avalonia Control Project](https://github.com/ackothalawala/stewart_platform_avalonia)
+
 | | V1 — WPF | V2 — Avalonia |
 |---|---|---|
 | UI framework | WPF | Avalonia UI |
